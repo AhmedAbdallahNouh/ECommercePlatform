@@ -1,5 +1,5 @@
 ﻿using ECommerce.Domain.Models;
-using ECommerce.Infrastructure.Persistence;
+using ECommerce.Infrastructure.Persistence.DbContext;
 
 namespace ECommerce.Infrastructure.SeedData
 {

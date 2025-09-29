@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace ECommerce.Infrastructure.Persistence
+namespace ECommerce.Infrastructure.Persistence.DbContext
 {
     public class ECommerceDbContextFactory : IDesignTimeDbContextFactory<ECommerceDbContext>
     {
