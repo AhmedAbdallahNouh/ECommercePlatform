@@ -2,7 +2,6 @@
 using ECommerce.Application.Common.Interfaces;
 using ECommerce.Domain.Models;
 using ECommerce.Domain.Shared;
-using MediatR;
 
 namespace ECommerce.Application.Products.Commands.CreateProductCommand
 {

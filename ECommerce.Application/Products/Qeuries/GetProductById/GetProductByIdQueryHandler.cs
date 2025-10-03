@@ -6,14 +6,12 @@ using ECommerce.Domain.Shared;
 
 namespace ECommerce.Application.Products.Qeuries.GetProductById
 {
-    public class GetProductByIdQeuryHandler(IUnitOfWork unitOfWork) : IQeuryHandler<GetProductByIdQeury, ProductDto>
+    public class GetProductByIdQueryHandler(IUnitOfWork unitOfWork) : IQeuryHandler<GetProductByIdQeury, ProductDto>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<Result<ProductDto>> Handle(GetProductByIdQeury request, CancellationToken cancellationToken)
-        {
-            await _unitOfWork.Repository<Product>().GetByIdAsync(request.id);
-            
+        {            
             var product = await _unitOfWork.Repository<Product>().GetByIdAsync(request.id);
             if (product is not null)
             {
@@ -27,8 +25,7 @@ namespace ECommerce.Application.Products.Qeuries.GetProductById
 
                 return Result.Success(productDto);
             }
-            return Result.Failure<ProductDto>(Error.NullValue);
-            
+            return Result.Failure<ProductDto>(Error.NullValue);         
         }
     }
 }
