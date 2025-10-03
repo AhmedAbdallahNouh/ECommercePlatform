@@ -1,8 +1,11 @@
 ﻿using ECommerce.API.Endpoints;
+using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.Interfaces;
 using ECommerce.Infrastructure.Persistence.DbContext;
 using ECommerce.Infrastructure.Persistence.UniteOfWork;
 using ECommerce.Infrastructure.SeedData;
+using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +21,10 @@ builder.Services.AddMediatR(configuration =>
 {
     configuration.RegisterServicesFromAssembly(ECommerce.Application.AssemblyReference.Assembly);
 });
+
+builder.Services.AddValidatorsFromAssembly(ECommerce.Application.AssemblyReference.Assembly, includeInternalTypes: true);
+builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
+
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -62,6 +69,37 @@ app.MapRoductsEndPointsAsync();
 app.UseHttpsRedirection();
 
 app.MapGet("/", () => "E-Commerce API Running 🚀");
+
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exception = context.Features
+            .Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+
+        if (exception is ValidationException validationEx)
+        {
+            var errors = validationEx.Errors.Select(e => new
+            {
+                Field = e.PropertyName,
+                Error = e.ErrorMessage
+            });
+
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                Message = "Validation failed",
+                Errors = errors
+            });
+        }
+        else
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            await context.Response.WriteAsJsonAsync(new { Message = "An error occurred" });
+        }
+    });
+});
 
 
 app.Run();

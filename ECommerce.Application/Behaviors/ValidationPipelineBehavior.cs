@@ -1,7 +1,6 @@
 ﻿using ECommerce.Domain.Shared;
 using FluentValidation;
 using MediatR;
-using System.Reflection;
 
 namespace ECommerce.Application.Behaviors
 {
@@ -15,14 +14,14 @@ namespace ECommerce.Application.Behaviors
         {
             _validators = validators;
         }
-        public Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             //Validate request 
             //if not valid return failure result
             //otherwise call the next delegate  next();
 
             if (!_validators.Any())
-                return next();
+                return await next();
 
             Error[] errors = _validators
                 .Select(validator => validator.Validate(request))
@@ -37,6 +36,8 @@ namespace ECommerce.Application.Behaviors
 
             if (errors.Any())
             {
+
+                return CreateValidationResult<TResponse>(errors);
                 //Return Validation result
             }
             throw new NotImplementedException();

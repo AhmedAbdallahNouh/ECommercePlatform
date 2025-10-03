@@ -1,7 +1,10 @@
 ﻿using ECommerce.Application.Common.Interfaces;
 using ECommerce.Application.Products.Commands.CreateProductCommand;
 using ECommerce.Domain.Models;
+using ECommerce.Domain.Shared;
 using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.API.Endpoints
 {
@@ -28,7 +31,7 @@ namespace ECommerce.API.Endpoints
             {
                 var result = await sender.Send(command);
                 return result.IsSuccess ? Results.CreatedAtRoute("GetProductById", new { id = result.Value }, result.Value) 
-                : Results.BadRequest(result.Error);
+                : HandleFailure(result);
             }).WithName("CreateProduct");
 
            group.MapPut("/{id:int}", async (int id, Product updatedProduct, IUnitOfWork unitOfWork) =>
@@ -52,5 +55,36 @@ namespace ECommerce.API.Endpoints
                 return Results.NoContent();
             }).WithName("DeleteProduct");
         }
+    
+        public static IResult HandleFailure(Result result) => 
+            result switch
+            {
+                { IsSuccess : true } => throw new InvalidOperationException(),
+                IValidationResult validationResult => 
+                     Results.BadRequest(
+                        CreateProblemDetails(
+                            "Validation Error", StatusCodes.Status400BadRequest,
+                            result.Error, 
+                            validationResult.Errors)),
+
+                _ => Results.BadRequest(
+                        CreateProblemDetails(
+                            "Bad Request", StatusCodes.Status400BadRequest,
+                            result.Error))
+            };
+      
+        private static ProblemDetails CreateProblemDetails(string title, int status, Error error, Error[]? errors = null ) =>
+            new()
+            {
+                Title = title,
+                Type = error.Code,
+                Detail = error.Message,
+                Status = status,
+                Extensions =
+                {
+                    ["errors"] = errors?.Select(e => new { e.Code, e.Message })
+                }
+            };
     }
+
 }
