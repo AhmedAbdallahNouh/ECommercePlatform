@@ -1,6 +1,6 @@
 ﻿using ECommerce.Application.Common.Interfaces;
 using ECommerce.Domain.Models;
-using ECommerce.Infrastructure.Persistence.DbContext;
+using ECommerce.Infrastructure.Persistence.DbContexts;
 using ECommerce.Infrastructure.Persistence.Repostories;
 
 namespace ECommerce.Infrastructure.Persistence.UniteOfWork
@@ -10,7 +10,7 @@ namespace ECommerce.Infrastructure.Persistence.UniteOfWork
         private readonly ECommerceDbContext context = _context;
         private readonly Dictionary<string, object> repositories = [];
 
-        public IRepository<T> Repository<T>() where T : BaseEntity
+        public IReadRepository<T> Repository<T>() where T : BaseEntity
         {
             var type = typeof(T).Name;
 
@@ -20,11 +20,21 @@ namespace ECommerce.Infrastructure.Persistence.UniteOfWork
                 repositories.Add(type, repo);
             }
 
-            return (IRepository<T>)repositories[type];
+            return (IReadRepository<T>)repositories[type];
         }
 
         public async Task<int> SaveChangesAsync() => await context.SaveChangesAsync();
  
         public void Dispose() => context.Dispose();
+
+        public IWriteRepository<T> WriteRepository<T>() where T : BaseEntity
+        {
+            throw new NotImplementedException();
+        }
+
+        public IReadRepository<T> ReadRepository<T>() where T : BaseEntity
+        {
+            throw new NotImplementedException();
+        }
     }
 }

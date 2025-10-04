@@ -1,8 +1,6 @@
 ﻿using ECommerce.API.Endpoints;
 using ECommerce.Application.Behaviors;
-using ECommerce.Application.Common.Interfaces;
-using ECommerce.Infrastructure.Persistence.DbContext;
-using ECommerce.Infrastructure.Persistence.UniteOfWork;
+using ECommerce.Infrastructure.Persistence.DbContexts;
 using ECommerce.Infrastructure.SeedData;
 using FluentValidation;
 using MediatR;
@@ -30,8 +28,15 @@ builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationPipeli
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddDbContext<ECommerceDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<WriteDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("WriteConnection")));
+
+builder.Services.AddDbContext<ReadDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ReadConnection")));
+
+
+//builder.Services.AddDbContext<ECommerceDbContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 
-namespace ECommerce.Infrastructure.Persistence.DbContext
+namespace ECommerce.Infrastructure.Persistence.DbContexts
 {
     public class ECommerceDbContext : IdentityDbContext<ApplicationUser>
     {
