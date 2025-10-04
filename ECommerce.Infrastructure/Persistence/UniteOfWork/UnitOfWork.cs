@@ -5,36 +5,48 @@ using ECommerce.Infrastructure.Persistence.Repostories;
 
 namespace ECommerce.Infrastructure.Persistence.UniteOfWork
 {
-    public class UnitOfWork(ECommerceDbContext _context) : IUnitOfWork
+    public class UnitOfWork(WriteDbContext writeContext,ReadDbContext readContext) : IUnitOfWork
     {
-        private readonly ECommerceDbContext context = _context;
-        private readonly Dictionary<string, object> repositories = [];
+        private readonly Dictionary<string, object> _readRepositories = [];
+        private readonly Dictionary<string, object> _writeRepositories = [];
 
-        public IReadRepository<T> Repository<T>() where T : BaseEntity
+        private readonly WriteDbContext writeContext = writeContext;
+        private readonly ReadDbContext readContext = readContext;
+
+
+        public async Task<int> SaveChangesAsync() => await writeContext.SaveChangesAsync();
+
+        public void Dispose()
+        {
+            writeContext.Dispose();
+            readContext.Dispose();
+        }
+       
+           
+        public IWriteRepository<T> WriteRepository<T>() where T : BaseEntity
         {
             var type = typeof(T).Name;
 
-            if(! repositories.ContainsKey(type))
+            if (!_writeRepositories.ContainsKey(type))
             {
-                var repo = new Repository<T>(context);
-                repositories.Add(type, repo);
+                var repo = new WriteRepository<T>(writeContext);
+                _readRepositories.Add(type, repo);
             }
 
-            return (IReadRepository<T>)repositories[type];
-        }
-
-        public async Task<int> SaveChangesAsync() => await context.SaveChangesAsync();
- 
-        public void Dispose() => context.Dispose();
-
-        public IWriteRepository<T> WriteRepository<T>() where T : BaseEntity
-        {
-            throw new NotImplementedException();
+            return (IWriteRepository<T>)_writeRepositories[type];
         }
 
         public IReadRepository<T> ReadRepository<T>() where T : BaseEntity
         {
-            throw new NotImplementedException();
+            var type = typeof(T).Name;
+
+            if (!_readRepositories.ContainsKey(type))
+            {
+                var repo = new ReadRepository<T>(readContext);
+                _readRepositories.Add(type, repo);
+            }
+
+            return (IReadRepository<T>)_readRepositories[type];
         }
     }
 }

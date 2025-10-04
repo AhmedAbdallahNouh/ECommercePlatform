@@ -19,7 +19,7 @@ namespace ECommerce.Application.Products.Commands.CreateProductCommand
                 Stock = request.Stock,
                 CategoryId = request.CategoryId
             };
-            await _unitOfWork.Repository<Product>().AddAsync(product);
+            await _unitOfWork.WriteRepository<Product>().AddAsync(product);
 
             var result = await _unitOfWork.SaveChangesAsync();
 

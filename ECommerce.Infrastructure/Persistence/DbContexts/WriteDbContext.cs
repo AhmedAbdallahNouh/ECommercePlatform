@@ -4,9 +4,10 @@ namespace ECommerce.Infrastructure.Persistence.DbContexts
 {
     public class WriteDbContext : ECommerceDbContext
     {
-        public WriteDbContext(DbContextOptions<ECommerceDbContext> options)
+        public WriteDbContext(DbContextOptions<WriteDbContext> options)
             : base(options)
         {
         }
     }
+
 }

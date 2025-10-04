@@ -7,10 +7,8 @@ namespace ECommerce.Infrastructure.Persistence.DbContexts
 {
     public class ECommerceDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ECommerceDbContext(DbContextOptions<ECommerceDbContext> options)
-            : base(options)
-        {
-        }
+        public ECommerceDbContext(DbContextOptions options) : base(options) { }
+
 
         // DbSets
         public DbSet<Category> Categories { get; set; }

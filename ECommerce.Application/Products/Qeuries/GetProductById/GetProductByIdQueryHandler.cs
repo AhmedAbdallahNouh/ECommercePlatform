@@ -12,7 +12,7 @@ namespace ECommerce.Application.Products.Qeuries.GetProductById
 
         public async Task<Result<ProductDto>> Handle(GetProductByIdQeury request, CancellationToken cancellationToken)
         {            
-            var product = await _unitOfWork.Repository<Product>().GetByIdAsync(request.id);
+            var product = await _unitOfWork.ReadRepository<Product>().GetByIdAsync(request.id);
             if (product is not null)
             {
                 var productDto = new ProductDto(
