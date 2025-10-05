@@ -63,7 +63,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Register endpoints
-app.MapRoductsEndPointsAsync();
+app.MapProductsEndpoints();
 // app.MapCategoriesEndpoints();
 // app.MapOrdersEndpoints();
 // app.MapPaymentsEndpoints();

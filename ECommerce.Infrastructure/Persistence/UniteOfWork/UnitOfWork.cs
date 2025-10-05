@@ -30,7 +30,7 @@ namespace ECommerce.Infrastructure.Persistence.UniteOfWork
             if (!_writeRepositories.ContainsKey(type))
             {
                 var repo = new WriteRepository<T>(writeContext);
-                _readRepositories.Add(type, repo);
+                _writeRepositories.Add(type, repo);
             }
 
             return (IWriteRepository<T>)_writeRepositories[type];

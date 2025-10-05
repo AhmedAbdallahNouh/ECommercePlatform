@@ -1,0 +1,25 @@
+﻿using ECommerce.Application.Abstraction.Messaging;
+using ECommerce.Application.Common.Interfaces;
+using ECommerce.Domain.Models;
+using ECommerce.Domain.Shared;
+
+namespace ECommerce.Application.Products.Commands.DeleteProductCommand
+{
+    public class DeleteProductCommandHandler(IUnitOfWork unitOfWork)
+        : ICommandHandler<DeleteProductCommand>
+    {
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<Result> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
+        {
+            var product = await _unitOfWork.ReadRepository<Product>().GetByIdAsync(request.Id);
+            if (product is null)
+                return Result.Failure(Error.NullValue);
+
+            _unitOfWork.WriteRepository<Product>().Delete(product);
+            var result = await _unitOfWork.SaveChangesAsync();
+
+            return result > 0 ? Result.Success() : Result.Failure(Error.NullValue);
+        }
+    }
+}

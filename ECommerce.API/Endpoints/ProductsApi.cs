@@ -1,79 +1,88 @@
-﻿using ECommerce.Application.Common.Interfaces;
-using ECommerce.Application.Products.Commands.CreateProductCommand;
-using ECommerce.Domain.Models;
+﻿using ECommerce.Application.Products.Commands.CreateProductCommand;
+using ECommerce.Application.Products.Commands.DeleteProductCommand;
+using ECommerce.Application.Products.Commands.UpdateProductCommand;
+using ECommerce.Application.Products.Queries.GetAllProducts;
+using ECommerce.Application.Products.Queries.GetProductById;
 using ECommerce.Domain.Shared;
 using MediatR;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.API.Endpoints
 {
     public static class ProductsApi
     {
-        public static async Task MapRoductsEndPointsAsync(this IEndpointRouteBuilder routes)
+        public static void MapProductsEndpoints(this IEndpointRouteBuilder routes)
         {
             var group = routes.MapGroup("/api/products").WithTags("Products");
 
-            group.MapGet("/", async (IUnitOfWork unitOfWork) =>
+            // ✅ GET All Products (ReadDb)
+            group.MapGet("/", async (ISender sender) =>
             {
-                var products = await unitOfWork.ReadRepository<Product>().GetAllAsync();
-                return Results.Ok(products);
+                var result = await sender.Send(new GetAllProductsQuery());
+                return result.IsSuccess
+                    ? Results.Ok(result.Value)
+                    : HandleFailure(result);
             }).WithName("GetAllProducts");
 
-
-            group.MapGet("/{id:int}", async (int id, IUnitOfWork unitOfWork) =>
+            // ✅ GET Product by Id (ReadDb)
+            group.MapGet("/{id:int}", async (int id, ISender sender) =>
             {
-                var product = await unitOfWork.ReadRepository<Product>().GetByIdAsync(id);
-                return product is not null ? Results.Ok(product) : Results.NotFound();
+                var result = await sender.Send(new GetProductByIdQeury(id));
+                return result.IsSuccess
+                    ? Results.Ok(result.Value)
+                    : HandleFailure(result);
             }).WithName("GetProductById");
 
+            // ✅ CREATE Product (WriteDb)
             group.MapPost("/", async (CreateProductCommand command, ISender sender) =>
             {
                 var result = await sender.Send(command);
-                return result.IsSuccess ? Results.CreatedAtRoute("GetProductById", new { id = result.Value }, result.Value) 
-                : HandleFailure(result);
+                return result.IsSuccess
+                    ? Results.CreatedAtRoute("GetProductById", new { id = result.Value }, result.Value)
+                    : HandleFailure(result);
             }).WithName("CreateProduct");
 
-           group.MapPut("/{id:int}", async (int id, Product updatedProduct, IUnitOfWork unitOfWork) =>
+            // ✅ UPDATE Product (WriteDb)
+            group.MapPut("/{id:int}", async (int id, UpdateProductCommand command, ISender sender) =>
             {
-                var product = await unitOfWork.ReadRepository<Product>().GetByIdAsync(id);
-                if (product is null) return Results.NotFound();
-                product.Name = updatedProduct.Name;
-                product.Description = updatedProduct.Description;
-                product.Price = updatedProduct.Price;
-                unitOfWork.WriteRepository<Product>().Update(product);
-                await unitOfWork.SaveChangesAsync();
-                return Results.NoContent();
+                if (id != command.Id)
+                    return Results.BadRequest("Product ID mismatch");
+
+                var result = await sender.Send(command);
+                return result.IsSuccess
+                    ? Results.NoContent()
+                    : HandleFailure(result);
             }).WithName("UpdateProduct");
 
-            group.MapDelete("/{id:int}", async (int id, IUnitOfWork unitOfWork) =>
+            // ✅ DELETE Product (WriteDb)
+            group.MapDelete("/{id:int}", async (int id, ISender sender) =>
             {
-                var product = await unitOfWork.ReadRepository<Product>().GetByIdAsync(id);
-                if (product is null) return Results.NotFound();
-                unitOfWork.WriteRepository<Product>().Delete(product);
-                await unitOfWork.SaveChangesAsync();
-                return Results.NoContent();
+                var result = await sender.Send(new DeleteProductCommand(id));
+                return result.IsSuccess
+                    ? Results.NoContent()
+                    : HandleFailure(result);
             }).WithName("DeleteProduct");
         }
-    
-        public static IResult HandleFailure(Result result) => 
+
+        // ✅ Unified Error Handling
+        private static IResult HandleFailure(Result result) =>
             result switch
             {
-                { IsSuccess : true } => throw new InvalidOperationException(),
-                IValidationResult validationResult => 
-                     Results.BadRequest(
-                        CreateProblemDetails(
-                            "Validation Error", StatusCodes.Status400BadRequest,
-                            result.Error, 
-                            validationResult.Errors)),
+                { IsSuccess: true } => throw new InvalidOperationException(),
+                IValidationResult validationResult =>
+                    Results.BadRequest(CreateProblemDetails(
+                        "Validation Error",
+                        StatusCodes.Status400BadRequest,
+                        result.Error,
+                        validationResult.Errors)),
 
-                _ => Results.BadRequest(
-                        CreateProblemDetails(
-                            "Bad Request", StatusCodes.Status400BadRequest,
-                            result.Error))
+                _ => Results.BadRequest(CreateProblemDetails(
+                        "Bad Request",
+                        StatusCodes.Status400BadRequest,
+                        result.Error))
             };
-      
-        private static ProblemDetails CreateProblemDetails(string title, int status, Error error, Error[]? errors = null ) =>
+
+        private static ProblemDetails CreateProblemDetails(string title, int status, Error error, Error[]? errors = null) =>
             new()
             {
                 Title = title,
@@ -86,5 +95,4 @@ namespace ECommerce.API.Endpoints
                 }
             };
     }
-
 }
