@@ -6,7 +6,7 @@ using ECommerce.Domain.Shared;
 
 namespace ECommerce.Application.Products.Queries.GetProductById
 {
-    public class GetProductByIdQueryHandler(IUnitOfWork unitOfWork) : IQeuryHandler<GetProductByIdQeury, ProductDto>
+    public class GetProductByIdQueryHandler(IUnitOfWork unitOfWork) : IQueryHandler<GetProductByIdQeury, ProductDto>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
