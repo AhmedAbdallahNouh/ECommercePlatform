@@ -12,7 +12,7 @@
         public DateTime Date { get; set; } = DateTime.UtcNow;
 
         // Navigation
-        public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
+        public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         public Payment? Payment { get; set; }
     }
 

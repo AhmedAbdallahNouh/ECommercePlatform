@@ -47,7 +47,7 @@ namespace ECommerce.Infrastructure.Persistence.DbContexts
             // Order - OrderItem (1..*)
             // -------------------------
             builder.Entity<Order>()
-                .HasMany(o => o.Items)
+                .HasMany(o => o.OrderItems)
                 .WithOne(oi => oi.Order)
                 .HasForeignKey(oi => oi.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
