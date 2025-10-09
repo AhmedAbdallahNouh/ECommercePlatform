@@ -9,6 +9,7 @@
         public string Message { get; set; } = string.Empty;
         public string Type { get; set; } = "Email"; // or "SMS"
         public DateTime Date { get; set; } = DateTime.UtcNow;
+        public bool IsRead { get; set; }
     }
 
 }
