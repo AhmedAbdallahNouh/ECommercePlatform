@@ -8,6 +8,7 @@
 
         // Navigation
         public ICollection<CartItem> Items { get; set; } = new List<CartItem>();
+        public decimal TotalAmount { get; set; }
     }
 
 }
