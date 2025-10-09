@@ -5,6 +5,7 @@
     public sealed record OrderDto(
         int Id,
         string UserId,
+        string UserName,
         decimal TotalAmount,
         string Status,
         DateTime Date,

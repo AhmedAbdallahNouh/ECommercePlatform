@@ -24,8 +24,8 @@ namespace ECommerce.Application.Orders.Queries.GetOrderById
 
             var dto = new OrderDto(
                 order.Id,
-                //order.UserId,
-                "dsdadas",
+                order.UserId,
+                order.User?.UserName,
                 order.TotalAmount,
                 order.Status,
                 order.Date,

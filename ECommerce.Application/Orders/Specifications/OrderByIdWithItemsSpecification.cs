@@ -9,6 +9,7 @@ namespace ECommerce.Application.Orders.Specifications
         public OrderByIdWithItemsSpecification(int id) : base(order => order.Id == id)
         {
             AddInclude(order => order.OrderItems);
+            AddInclude(order => order.User);
         }
     }
 }
