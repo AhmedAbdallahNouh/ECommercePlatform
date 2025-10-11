@@ -1,5 +1,6 @@
 ﻿using ECommerce.API.Endpoints;
 using ECommerce.Application.Behaviors;
+using ECommerce.Infrastructure.Interceptors;
 using ECommerce.Infrastructure.Persistence.DbContexts;
 using ECommerce.Infrastructure.SeedData;
 using FluentValidation;
@@ -29,10 +30,16 @@ builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationPipeli
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<WriteDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("WriteConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("WriteConnection"))
+    .AddInterceptors(new SoftDeleteInterceptor())
+
+);
 
 builder.Services.AddDbContext<ReadDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ReadConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ReadConnection"))
+    .AddInterceptors(new SoftDeleteInterceptor())
+
+ );
 
 
 //builder.Services.AddDbContext<ECommerceDbContext>(options =>
@@ -64,11 +71,11 @@ if (app.Environment.IsDevelopment())
 
 // Register endpoints
 app.MapProductsEndpoints();
-// app.MapCategoriesEndpoints();
+app.MapCategoriesEndpoints();
 app.MapOrdersEndpoints();
-// app.MapPaymentsEndpoints();
-// app.MapCartsEndpoints();
-// app.MapNotificationsEndpoints();
+app.MapPaymentsEndpoints();
+app.MapCartsEndpoints();
+app.MapNotificationsEndpoints();
 // app.MapReviewsEndpoints();
 
 app.UseHttpsRedirection();

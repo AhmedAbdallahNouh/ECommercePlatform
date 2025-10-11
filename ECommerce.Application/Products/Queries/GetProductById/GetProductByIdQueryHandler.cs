@@ -1,6 +1,7 @@
 ﻿using ECommerce.Application.Abstraction.Messaging;
 using ECommerce.Application.Common.Interfaces;
 using ECommerce.Application.Products.DTOs;
+using ECommerce.Application.Products.Queries.Specifications;
 using ECommerce.Domain.Models;
 using ECommerce.Domain.Shared;
 
@@ -11,8 +12,10 @@ namespace ECommerce.Application.Products.Queries.GetProductById
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<Result<ProductDto>> Handle(GetProductByIdQeury request, CancellationToken cancellationToken)
-        {            
-            var product = await _unitOfWork.ReadRepository<Product>().GetByIdAsync(request.id);
+        {
+            var spec = new ProductByIdSpec(request.id);
+            var product = await _unitOfWork.ReadRepository<Product>().GetEntityWithSpecAsync(spec);
+
             if (product is not null)
             {
                 var productDto = new ProductDto(
@@ -20,6 +23,7 @@ namespace ECommerce.Application.Products.Queries.GetProductById
                        product.Name,
                        product.Price,
                        product.Stock,
+                       product.Category?.Name ?? string.Empty,
                        product.Description ?? string.Empty
                     );
 

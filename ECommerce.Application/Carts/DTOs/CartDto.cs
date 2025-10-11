@@ -2,9 +2,9 @@
 {
     public sealed record CartItemDto(
         int ProductId,
-        int Quantity
+        int Quantity,
+        int Price
     );
-
     public sealed record CartDto(
         int Id,
         string UserId,

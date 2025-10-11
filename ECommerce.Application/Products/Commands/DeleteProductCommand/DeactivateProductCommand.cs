@@ -2,5 +2,5 @@
 
 namespace ECommerce.Application.Products.Commands.DeleteProductCommand
 {
-    public sealed record DeleteProductCommand(int Id) : ICommand;
+    public sealed record DeactivateProductCommand(int Id) : ICommand;
 }

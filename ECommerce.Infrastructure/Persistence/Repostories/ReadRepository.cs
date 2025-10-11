@@ -24,6 +24,11 @@ namespace ECommerce.Infrastructure.Persistence.Repostories
             return await query.FirstOrDefaultAsync();
         }
 
+        public async Task<IReadOnlyList<T>> GetEntitiesWithSpecAsync(ISpecification<T> spec)
+        {
+            var query = SpecificationQueryBuilder.ApplySpecification(_dbSet, spec);
+            return await query.ToListAsync();
+        }
     }
 
 }

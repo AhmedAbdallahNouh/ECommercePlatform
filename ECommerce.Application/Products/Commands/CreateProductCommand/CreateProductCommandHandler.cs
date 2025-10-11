@@ -10,6 +10,16 @@ namespace ECommerce.Application.Products.Commands.CreateProductCommand
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         public async Task<Result<int>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
+            var category = await _unitOfWork.ReadRepository<Category>().GetByIdAsync(request.CategoryId);
+            if (category is null)
+                return Result.Failure<int>(new Error("Category.NotFound", "Category does not exist."));
+
+
+            var existingProduct = (await _unitOfWork.ReadRepository<Product>().GetAllAsync())
+               .FirstOrDefault(p => p.Name.ToLower() == request.Name.ToLower() && p.CategoryId == request.CategoryId);
+
+            if (existingProduct is not null)
+                return Result.Failure<int>(new Error("Product.Duplicate", "Product with the same name already exists in this category."));
 
             var product = new Product
             {
@@ -17,7 +27,8 @@ namespace ECommerce.Application.Products.Commands.CreateProductCommand
                 Description = request.Description,
                 Price = request.Price,
                 Stock = request.Stock,
-                CategoryId = request.CategoryId
+                CategoryId = request.CategoryId,
+                IsDeleted = false
             };
             await _unitOfWork.WriteRepository<Product>().AddAsync(product);
 

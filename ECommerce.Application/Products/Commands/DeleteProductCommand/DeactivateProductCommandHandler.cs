@@ -5,12 +5,12 @@ using ECommerce.Domain.Shared;
 
 namespace ECommerce.Application.Products.Commands.DeleteProductCommand
 {
-    public class DeleteProductCommandHandler(IUnitOfWork unitOfWork)
-        : ICommandHandler<DeleteProductCommand>
+    public class DeactivateProductCommandHandler(IUnitOfWork unitOfWork)
+        : ICommandHandler<DeactivateProductCommand>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-        public async Task<Result> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(DeactivateProductCommand request, CancellationToken cancellationToken)
         {
             var product = await _unitOfWork.ReadRepository<Product>().GetByIdAsync(request.Id);
             if (product is null)

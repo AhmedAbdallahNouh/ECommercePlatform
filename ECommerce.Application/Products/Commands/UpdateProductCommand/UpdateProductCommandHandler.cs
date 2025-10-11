@@ -21,6 +21,7 @@ namespace ECommerce.Application.Products.Commands.UpdateProductCommand
             product.Description = request.Description;
             product.Price = request.Price;
             product.Stock = request.Stock;
+            product.Stock = request.Stock;
             //product.CategoryId = request.CategoryId;
 
             _unitOfWork.WriteRepository<Product>().Update(product);

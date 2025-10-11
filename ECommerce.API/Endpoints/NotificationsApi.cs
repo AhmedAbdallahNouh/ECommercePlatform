@@ -4,9 +4,7 @@ using ECommerce.Application.Notifications.Commands.DeleteNotification;
 using ECommerce.Application.Notifications.Commands.UpdateNotification;
 using ECommerce.Application.Notifications.Queries.GetAllNotifications;
 using ECommerce.Application.Notifications.Queries.GetNotificationById;
-using ECommerce.Domain.Shared;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.API.Endpoints
 {

@@ -1,6 +1,7 @@
 ﻿using ECommerce.Application.Products.Commands.CreateProductCommand;
 using ECommerce.Application.Products.Commands.DeleteProductCommand;
 using ECommerce.Application.Products.Commands.UpdateProductCommand;
+using ECommerce.Application.Products.DTOs.ECommerce.API.Contracts.Products;
 using ECommerce.Application.Products.Queries.GetAllProducts;
 using ECommerce.Application.Products.Queries.GetProductById;
 using ECommerce.Domain.Shared;
@@ -16,13 +17,29 @@ namespace ECommerce.API.Endpoints
             var group = routes.MapGroup("/api/products").WithTags("Products");
 
             // ✅ GET All Products (ReadDb)
-            group.MapGet("/", async (ISender sender) =>
+            // ✅ GET All Products (with filtering, searching, pagination)
+            group.MapGet("/", async (
+                [AsParameters] GetAllProductsRequest request,
+                ISender sender) =>
             {
-                var result = await sender.Send(new GetAllProductsQuery());
+                var query = new GetAllProductsQuery(
+                    request.SearchTerm,
+                    request.CategoryId,
+                    request.PageNumber,
+                    request.PageSize
+                );
+
+                var result = await sender.Send(query);
+
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
                     : HandleFailure(result);
-            }).WithName("GetAllProducts");
+            })
+            .WithName("GetAllProducts")
+            .WithOpenApi(operation => new(operation)
+            {
+                Summary = "Get all products with optional search, category filter, and pagination."
+            });
 
             // ✅ GET Product by Id (ReadDb)
             group.MapGet("/{id:int}", async (int id, ISender sender) =>
@@ -57,7 +74,7 @@ namespace ECommerce.API.Endpoints
             // ✅ DELETE Product (WriteDb)
             group.MapDelete("/{id:int}", async (int id, ISender sender) =>
             {
-                var result = await sender.Send(new DeleteProductCommand(id));
+                var result = await sender.Send(new DeactivateProductCommand(id));
                 return result.IsSuccess
                     ? Results.NoContent()
                     : HandleFailure(result);
