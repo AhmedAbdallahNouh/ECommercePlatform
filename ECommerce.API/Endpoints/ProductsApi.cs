@@ -1,10 +1,13 @@
-﻿using ECommerce.Application.Products.Commands.CreateProductCommand;
+﻿using ECommerce.API.Utilities;
+using ECommerce.Application.Common.Interfaces;
+using ECommerce.Application.Products.Commands.CreateProductCommand;
 using ECommerce.Application.Products.Commands.DeleteProductCommand;
 using ECommerce.Application.Products.Commands.UpdateProductCommand;
 using ECommerce.Application.Products.DTOs.ECommerce.API.Contracts.Products;
 using ECommerce.Application.Products.Queries.GetAllProducts;
 using ECommerce.Application.Products.Queries.GetProductById;
 using ECommerce.Domain.Shared;
+using ECommerce.Infrastructure.Search;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,7 +36,7 @@ namespace ECommerce.API.Endpoints
 
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
-                    : HandleFailure(result);
+                    :ApiResultHandeler.HandleFailure(result);
             })
             .WithName("GetAllProducts")
             .WithOpenApi(operation => new(operation)
@@ -47,8 +50,45 @@ namespace ECommerce.API.Endpoints
                 var result = await sender.Send(new GetProductByIdQeury(id));
                 return result.IsSuccess
                     ? Results.Ok(result.Value)
-                    : HandleFailure(result);
+                    : ApiResultHandeler.HandleFailure(result);
             }).WithName("GetProductById");
+
+
+            group.MapGet("/search", async (
+                [FromQuery] string term,
+                [FromServices] MeiliSearchService meiliSearchService
+                ) =>
+            {
+                if (string.IsNullOrWhiteSpace(term))
+                {
+                    var result = Result.Failure<int>(new Error("Product.Search ", "Search term cannot be empty."));
+                    ApiResultHandeler.HandleFailure(result);
+                }
+
+                var searchResults = await meiliSearchService.SearchProductsAsync(term);
+                return Results.Ok(searchResults);
+            })
+             .WithName("SearchProducts");
+
+
+            group.MapGet("/searchpagination", async (
+                [FromServices] ISearchService meiliSearchService,
+                [FromQuery] string? query,
+                [FromQuery] int? categoryId,
+                [FromQuery] decimal? minPrice,
+                [FromQuery] decimal? maxPrice,
+                [FromQuery] int pageNumber = 1,
+                [FromQuery] int pageSize =10
+                ) =>
+            {
+                var results = await meiliSearchService.SearchProductsAsync(query ?? "", categoryId, minPrice, maxPrice,pageNumber,pageSize);
+                return Results.Ok(results);
+            })
+            .WithName("searchPagination")
+            .WithSummary("Search products using Meilisearch")
+            .WithDescription("Search products with full-text, filters, and range queries powered by Meilisearch");
+
+
 
             // ✅ CREATE Product (WriteDb)
             group.MapPost("/", async (CreateProductCommand command, ISender sender) =>
@@ -56,7 +96,7 @@ namespace ECommerce.API.Endpoints
                 var result = await sender.Send(command);
                 return result.IsSuccess
                     ? Results.CreatedAtRoute("GetProductById", new { id = result.Value }, result.Value)
-                    : HandleFailure(result);
+                    : ApiResultHandeler.HandleFailure(result);
             }).WithName("CreateProduct");
 
             // ✅ UPDATE Product (WriteDb)
@@ -68,7 +108,7 @@ namespace ECommerce.API.Endpoints
                 var result = await sender.Send(command);
                 return result.IsSuccess
                     ? Results.NoContent()
-                    : HandleFailure(result);
+                    : ApiResultHandeler.HandleFailure(result);
             }).WithName("UpdateProduct");
 
             // ✅ DELETE Product (WriteDb)
@@ -77,39 +117,10 @@ namespace ECommerce.API.Endpoints
                 var result = await sender.Send(new DeactivateProductCommand(id));
                 return result.IsSuccess
                     ? Results.NoContent()
-                    : HandleFailure(result);
+                    : ApiResultHandeler.HandleFailure(result);
             }).WithName("DeleteProduct");
         }
 
-        // ✅ Unified Error Handling
-        private static IResult HandleFailure(Result result) =>
-            result switch
-            {
-                { IsSuccess: true } => throw new InvalidOperationException(),
-                IValidationResult validationResult =>
-                    Results.BadRequest(CreateProblemDetails(
-                        "Validation Error",
-                        StatusCodes.Status400BadRequest,
-                        result.Error,
-                        validationResult.Errors)),
-
-                _ => Results.BadRequest(CreateProblemDetails(
-                        "Bad Request",
-                        StatusCodes.Status400BadRequest,
-                        result.Error))
-            };
-
-        private static ProblemDetails CreateProblemDetails(string title, int status, Error error, Error[]? errors = null) =>
-            new()
-            {
-                Title = title,
-                Type = error.Code,
-                Detail = error.Message,
-                Status = status,
-                Extensions =
-                {
-                    ["errors"] = errors?.Select(e => new { e.Code, e.Message })
-                }
-            };
+       
     }
 }

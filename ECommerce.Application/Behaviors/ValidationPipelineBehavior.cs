@@ -40,7 +40,7 @@ namespace ECommerce.Application.Behaviors
                 return CreateValidationResult<TResponse>(errors);
                 //Return Validation result
             }
-            throw new NotImplementedException();
+            return await next();
         }
 
         private static TResult CreateValidationResult<TResult>(Error[] errors)

@@ -23,7 +23,7 @@ namespace ECommerce.Application.Carts.Queries.GetAllCarts
                 c.Id,
                 c.UserId,
                 c.TotalAmount,
-                c.Items.Select(i => new CartItemDto(i.ProductId, i.Quantity)).ToList()
+                c.Items.Select(i => new CartItemDto(i.ProductId, i.Quantity, i.Price)).ToList()
             )).ToList();
 
             return Result.Success((IReadOnlyList<CartDto>)list);

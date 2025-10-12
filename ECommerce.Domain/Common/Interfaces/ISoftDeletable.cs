@@ -2,8 +2,8 @@
 {
     public interface ISoftDeletable
     {
-        bool IsDeleted { get; set; }
-        DateTime? DeletedAt { get; set; }
+        bool IsDeleted { get; }
+        DateTime? DeletedAt { get; }
         void SoftDelete();
         void Restore();
     }

@@ -1,7 +1,12 @@
 ﻿using ECommerce.API.Endpoints;
 using ECommerce.Application.Behaviors;
+using ECommerce.Application.Common.Interfaces;
+using ECommerce.Application.Common.Interfaces.RabbitMQ;
+using ECommerce.Application.Common.Services.RabbitMQ;
+using ECommerce.Domain.Models;
 using ECommerce.Infrastructure.Interceptors;
 using ECommerce.Infrastructure.Persistence.DbContexts;
+using ECommerce.Infrastructure.Search;
 using ECommerce.Infrastructure.SeedData;
 using FluentValidation;
 using MediatR;
@@ -9,12 +14,28 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 builder.Services.Scan(scan => scan
     .FromAssemblies(
         ECommerce.Infrastructure.AssemblyReference.Assembly)
-    .AddClasses(false)
+    .AddClasses(classes => classes.Where(type => type != typeof(MeiliSearchService) && type != typeof(RabbitMqPublisherService)))
     .AsImplementedInterfaces()
     .WithScopedLifetime());
+
+
+//Meilisearch --master-key IifgZM8Zi5vOjSklt8AWTGFpDAQ7YlffZf665O9KkO8 
+builder.Services.AddSingleton<ISearchService>(sp =>
+{
+    var hostUrl = "http://localhost:7700";
+    var apiKey = "IifgZM8Zi5vOjSklt8AWTGFpDAQ7YlffZf665O9KkO8";
+    return new MeiliSearchService(hostUrl, apiKey);
+});
+
+builder.Services.AddHttpClient<IRabbitMqPublisherService, RabbitMqPublisherService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7064/");
+});
+
 
 builder.Services.AddMediatR(configuration =>
 {
@@ -53,12 +74,36 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+//using (var scope = app.Services.CreateScope())
+//{
+//    var search = scope.ServiceProvider.GetRequiredService<ISearchService>();
+//    await search.InitializeIndexAsync();
+
+
+
+//    await search.AddOrUpdateProductAsync(new Product
+//    {
+//        Id = 999,
+//        Name = "Test Product",
+//        Description = "Just to test Meilisearch indexing",
+//        Price = 100,
+//        CategoryId = 1,
+//        Category = new Category { Name = "Test Category" }
+//    });
+
+
+//    search.GetAllDocuments().GetAwaiter().GetResult();  
+//}
+
+
 // ✅ Seed Data
 
 using (var scope = app.Services.CreateScope())
 {
+    var search = scope.ServiceProvider.GetRequiredService<ISearchService>();
+
     var db = scope.ServiceProvider.GetRequiredService<WriteDbContext>();
-    DbInitializer.Seed(db);
+    await DbInitializer.Seed(db, search);
 }
 
 // Configure the HTTP request pipeline.

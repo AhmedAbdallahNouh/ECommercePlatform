@@ -1,11 +1,13 @@
-﻿using ECommerce.Domain.Models;
+﻿using ECommerce.Application.Common.Interfaces;
+using ECommerce.Domain.Models;
 using ECommerce.Infrastructure.Persistence.DbContexts;
+using System.Threading.Tasks;
 
 namespace ECommerce.Infrastructure.SeedData
 {
     public static class DbInitializer
     {
-        public static void Seed(ECommerceDbContext context)
+        public static async Task Seed(ECommerceDbContext context , ISearchService searchService)
         {
             // لو الداتا موجودة خلاص ما نعملش حاجة
             if (context.Categories.Any())
@@ -16,7 +18,8 @@ namespace ECommerce.Infrastructure.SeedData
             {
                 new Category { Name = "Electronics" },
                 new Category { Name = "Clothes" },
-                new Category { Name = "Books" }
+                new Category { Name = "Books" },
+                new Category { Name = "Mobiles" }
             };
 
             context.Categories.AddRange(categories);
@@ -28,11 +31,18 @@ namespace ECommerce.Infrastructure.SeedData
                 new Product { Name = "Laptop", Price = 1200, Stock = 10, CategoryId = categories[0].Id },
                 new Product { Name = "Smartphone", Price = 800, Stock = 15, CategoryId = categories[0].Id },
                 new Product { Name = "T-Shirt", Price = 20, Stock = 50, CategoryId = categories[1].Id },
-                new Product { Name = "Novel", Price = 15, Stock = 100, CategoryId = categories[2].Id }
+                new Product { Name = "Novel", Price = 15, Stock = 100, CategoryId = categories[2].Id },
+                new Product { Name = "Oppo Reno 12g", Description = "G5 smart phone mobile from oppo company"
+                , Price = 15, Stock = 100, CategoryId = categories[3].Id }
             };
 
             context.Products.AddRange(products);
             context.SaveChanges();
+
+            foreach(var product in products)
+            {
+                await searchService.AddOrUpdateProductAsync(product);
+            }
         }
     }
 }

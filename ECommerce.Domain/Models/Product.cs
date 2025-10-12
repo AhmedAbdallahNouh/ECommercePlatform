@@ -31,8 +31,8 @@ namespace ECommerce.Domain.Models
         // FK
         public int CategoryId { get; set; }
         public Category Category { get; set; } = null!;
-        public bool IsDeleted { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public DateTime? DeletedAt { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool IsDeleted { get; private set; } = false;
+        public DateTime? DeletedAt { get; private set; }
     }
 
 }

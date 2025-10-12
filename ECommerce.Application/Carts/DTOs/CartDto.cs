@@ -3,7 +3,7 @@
     public sealed record CartItemDto(
         int ProductId,
         int Quantity,
-        int Price
+        decimal Price
     );
     public sealed record CartDto(
         int Id,

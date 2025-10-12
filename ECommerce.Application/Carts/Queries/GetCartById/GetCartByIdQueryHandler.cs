@@ -25,7 +25,7 @@ namespace ECommerce.Application.Carts.Queries.GetCartById
                 cart.Id,
                 cart.UserId,
                 cart.TotalAmount,
-                cart.Items.Select(i => new CartItemDto(i.ProductId, i.Quantity)).ToList()
+                cart.Items.Select(i => new CartItemDto(i.ProductId, i.Quantity, i.Price)).ToList()
             );
 
             return Result.Success(dto);

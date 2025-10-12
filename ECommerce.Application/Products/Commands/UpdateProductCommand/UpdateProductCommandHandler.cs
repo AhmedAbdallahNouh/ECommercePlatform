@@ -6,10 +6,12 @@ using MediatR;
 
 namespace ECommerce.Application.Products.Commands.UpdateProductCommand
 {
-    public class UpdateProductCommandHandler(IUnitOfWork unitOfWork)
+    public class UpdateProductCommandHandler(IUnitOfWork unitOfWork, ISearchService meiliSearchService)
         : ICommandHandler<UpdateProductCommand, int>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly ISearchService _meiliSearchService = meiliSearchService;
+
 
         async Task<Result<int>> IRequestHandler<UpdateProductCommand, Result<int>>.Handle(UpdateProductCommand request, CancellationToken cancellationToken)
         {
@@ -26,6 +28,8 @@ namespace ECommerce.Application.Products.Commands.UpdateProductCommand
 
             _unitOfWork.WriteRepository<Product>().Update(product);
             var result = await _unitOfWork.SaveChangesAsync();
+
+            await _meiliSearchService.AddOrUpdateProductAsync(product);
 
             return result > 0 ? Result.Success(result) : Result.Failure<int>(Error.NullValue);
         }
